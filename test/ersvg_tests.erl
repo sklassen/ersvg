@@ -1,16 +1,10 @@
 -module(ersvg_tests). 
 -import(ersvg,[version/0,svg_to_png/1]).
+
 -include_lib("eunit/include/eunit.hrl").
+-include_lib("xmerl/include/xmerl.hrl").
 
-version_test() ->
-  ?assertEqual(<<"0.37.0">>,version()).
-
-svg_to_png_bad_test() ->
-  ?assertError(illegal,svg_to_png(<<"\" | date > /tmp/bad\0">>)).
-
-svg_to_png_0_test() ->
-  SVG = <<"<svg width='100' height='100' xmlns=\"http://www.w3.org/2000/svg\">\r\n<rect x=\"10\" y='20' width='80' height='50' fill='black'/></svg>">>,
-  PNG = <<137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,100,0,0,
+-define(PNG,<<137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,100,0,0,
           0,100,8,6,0,0,0,112,226,149,84,0,0,3,68,73,68,65,84,120,1,
           237,224,1,144,36,73,146,36,73,18,139,170,153,187,71,68,68,
           102,102,102,86,85,85,85,85,119,119,119,119,119,247,204,204,
@@ -64,5 +58,18 @@ svg_to_png_0_test() ->
           226,170,255,73,16,87,253,79,130,184,234,127,18,196,85,255,
           147,32,174,250,159,4,113,213,255,36,136,171,254,39,65,92,
           245,63,9,226,170,255,73,16,87,253,79,194,63,2,115,140,50,
-          101,9,37,127,19,0,0,0,0,73,69,78,68,174,66,96,130>>,
-  ?assertEqual(PNG,svg_to_png(SVG)).
+          101,9,37,127,19,0,0,0,0,73,69,78,68,174,66,96,130>>).
+
+svg_to_png_bad_test() ->
+  ?assertError(illegal,svg_to_png(<<"\" | date > /tmp/bad\0">>)).
+
+svg_to_png_string_test() ->
+    Rect=#xmlElement{name='rect',attributes=[{x,10},{y,20},{width,80},{height,50},{fill,black}]},
+    RootEl=#xmlElement{name='svg',attributes=[{width,100},{height,100},{xmlns,'http://www.w3.org/2000/svg'}],content=[Rect]},
+    Export=list_to_binary(xmerl:export_simple([RootEl],xmerl_xml,[{prolog,""}])),
+    io:format("~p",[Export]),
+    ?assertEqual(?PNG,svg_to_png(Export)).
+
+svg_to_png_0_test() ->
+  SVG = <<"<svg width='100' height='100' xmlns=\"http://www.w3.org/2000/svg\">\r\n<rect x=\"10\" y='20' width='80' height='50' fill='black'/></svg>">>,
+  ?assertEqual(?PNG,svg_to_png(SVG)).
