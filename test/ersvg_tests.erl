@@ -64,12 +64,11 @@ svg_to_png_bad_test() ->
   ?assertError(illegal,svg_to_png(<<"\" | date > /tmp/bad\0">>)).
 
 svg_to_png_string_test() ->
+  SVG = <<"<svg width='100' height='100' xmlns=\"http://www.w3.org/2000/svg\">\r\n<rect x=\"10\" y='20' width='80' height='50' fill='black'/></svg>">>,
+  ?assertEqual(?PNG,svg_to_png(SVG)).
+
+svg_to_png_xmerl_test() ->
     Rect=#xmlElement{name='rect',attributes=[{x,10},{y,20},{width,80},{height,50},{fill,black}]},
     RootEl=#xmlElement{name='svg',attributes=[{width,100},{height,100},{xmlns,'http://www.w3.org/2000/svg'}],content=[Rect]},
     Export=list_to_binary(xmerl:export_simple([RootEl],xmerl_xml,[{prolog,""}])),
-    io:format("~p",[Export]),
     ?assertEqual(?PNG,svg_to_png(Export)).
-
-svg_to_png_0_test() ->
-  SVG = <<"<svg width='100' height='100' xmlns=\"http://www.w3.org/2000/svg\">\r\n<rect x=\"10\" y='20' width='80' height='50' fill='black'/></svg>">>,
-  ?assertEqual(?PNG,svg_to_png(SVG)).
