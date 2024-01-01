@@ -21,9 +21,7 @@ svg_to_png(Data) ->
 
 -spec svg_to_png(iodata(), options()) -> binary().
 svg_to_png(Binary,#{}) when is_binary(Binary)->
-    exec(<<"priv/bin/resvg - -c">>, Binary);
-    %exec(<<"priv/bin/resvg - -c --resources-dir .">>,Binary);
-    %exec(<<"/usr/bin/tee /tmp/pipe.log">>,Binary);
+    exec(<<"priv/bin/resvg - -c --resources-dir .">>,Binary);
 svg_to_png(List,Options) when is_list(List)->
     svg_to_png(list_to_binary(List),Options).
 
@@ -37,12 +35,6 @@ exec(BaseCommand,StdIn) ->
     Command = <<"echo ", QuotedStdIn/binary, " | ", BaseCommand/binary>>,
     ?LOG_DEBUG("ersvg:~p~n",[Command]),
     Port = erlang:open_port({spawn, Command}, [binary, eof, use_stdio, exit_status, hide, stream]),
-    %EOT = <<$\>>,
-    %?LOG_DEBUG("EOT ~p~n",[<<EOT/binary>>]),
-    %erlang:port_command(Port, StdIn),
-    %erlang:port_command(Port, [$\n]),
-    %erlang:port_command(Port, <<4>>),
-    %erlang:port_command(Port, EOT),
     get_data(Port).
 
 -spec quote(unicode:unicode_binary()) -> unicode:unicode_binary().
