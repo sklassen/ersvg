@@ -1,5 +1,5 @@
 {application, ersvg,
- [{description, "An OTP application"},
+ [{description, "Convert SVG to PNG"},
   {vsn, "0.1.0"},
   {registered, []},
   {applications,
