@@ -8,6 +8,9 @@
 -include_lib("kernel/include/logger.hrl").
 
 -export([version/0,svg_to_png/1,svg_to_png/2]).
+-export_type([options/0]).
+
+-type options() :: #{}.
 
 version() ->
     Bin=exec(<<"priv/bin/resvg --version">>),
@@ -16,19 +19,23 @@ version() ->
 svg_to_png(Data) ->
   svg_to_png(Data,#{}).
 
+-spec svg_to_png(iodata(), options()) -> binary().
 svg_to_png(Binary,#{}) when is_binary(Binary)->
-    exec(<<"echo \"",Binary/binary,"\" | priv/bin/resvg - -c">>);
+    exec(<<"priv/bin/resvg - -c">>, Binary);
     %exec(<<"priv/bin/resvg - -c --resources-dir .">>,Binary);
     %exec(<<"/usr/bin/tee /tmp/pipe.log">>,Binary);
 svg_to_png(List,Options) when is_list(List)->
     svg_to_png(list_to_binary(List),Options).
-    
+
+-spec exec(unicode:unicode_binary()) -> binary().
 exec(Command) ->
   exec(Command,<<>>).
 
-exec(Command,StdIn) ->
+-spec exec(unicode:unicode_binary(), unicode:unicode_binary()) -> binary().
+exec(BaseCommand,StdIn) ->
+    QuotedStdIn = quote(StdIn),
+    Command = <<"echo ", QuotedStdIn/binary, " | ", BaseCommand/binary>>,
     ?LOG_DEBUG("ersvg:~p~n",[Command]),
-    sanitize(Command),
     Port = erlang:open_port({spawn, Command}, [binary, eof, use_stdio, exit_status, hide, stream]),
     %EOT = <<$\>>,
     %?LOG_DEBUG("EOT ~p~n",[<<EOT/binary>>]),
@@ -38,8 +45,17 @@ exec(Command,StdIn) ->
     %erlang:port_command(Port, EOT),
     get_data(Port).
 
+-spec quote(unicode:unicode_binary()) -> unicode:unicode_binary().
+quote(Binary) when is_binary(Binary) ->
+    sanitize(Binary),
+    Sanitized = binary:replace(Binary, <<"'">>, <<"'\"'\"'">>, [global]),
+    <<"'", Sanitized/binary, "'">>;
+quote(Arg1) ->
+    erlang:error(badarg, [Arg1]).
+
+-spec sanitize(unicode:unicode_binary()) -> ok.
 sanitize(Binary)->
-  case binary:match(Binary,[<<"`">>]) of
+  case binary:match(Binary,[<<"\0">>]) of
     nomatch -> ok;
     _ -> erlang:error(illegal)
   end.

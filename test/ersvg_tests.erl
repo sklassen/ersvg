@@ -6,10 +6,10 @@ version_test() ->
   ?assertEqual(<<"0.37.0">>,version()).
 
 svg_to_png_bad_test() ->
-  ?assertError(illegal,svg_to_png(<<"`ls > /tmp/bad`">>)).
+  ?assertError(illegal,svg_to_png(<<"\" | date > /tmp/bad\0">>)).
 
 svg_to_png_0_test() ->
-  SVG = <<"<svg width='100' height='100' xmlns='http://www.w3.org/2000/svg'><rect x='10' y='20' width='80' height='50' fill='black'/></svg>">>,
+  SVG = <<"<svg width='100' height='100' xmlns=\"http://www.w3.org/2000/svg\">\r\n<rect x=\"10\" y='20' width='80' height='50' fill='black'/></svg>">>,
   PNG = <<87,97,114,110,105,110,103,58,32,77,97,107,101,32,115,117,
           114,101,32,116,111,32,115,101,116,32,45,45,114,101,115,111,
           117,114,99,101,115,45,100,105,114,32,119,104,101,110,32,114,
